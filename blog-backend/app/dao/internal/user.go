@@ -21,7 +21,6 @@ type UserDao struct {
 // UserColumns defines and stores column names for table user.
 type userColumns struct {
 	Uid           string // 主键，分布式环境下不建议设置自增属性，而是在业务层通过分布式id生成算法生成id
-	RoleUid       string // 用户角色的uid
 	UserName      string // 用户登录账号使用的账号名称
 	Password      string // 用户登录使用的密码
 	NickName      string // 用户账号的账号名称，不允许重复
@@ -46,7 +45,6 @@ type userColumns struct {
 func NewUserDao() *UserDao {
 	columns := userColumns{
 		Uid:           "uid",
-		RoleUid:       "role_uid",
 		UserName:      "user_name",
 		Password:      "password",
 		NickName:      "nick_name",

@@ -9,6 +9,8 @@ import (
 	"blog-backend/app/dao/utils"
 	"blog-backend/app/dao/valid"
 	"blog-backend/app/model"
+	"context"
+	"github.com/gogf/gf/database/gdb"
 	"github.com/gogf/gf/errors/gerror"
 	"github.com/gogf/gf/frame/g"
 	"github.com/gogf/gf/os/glog"
@@ -42,12 +44,11 @@ func init() {
 	userLogger = g.Log(`"user"表`)
 }
 
-// GetUserBuUID 通过uid来获取数据的信息，优先会从redis中去查询缓存数据，如果redis中查询不到，再从数据库中查找
+// GetUserByUid 通过uid来获取数据的信息，优先会从redis中去查询缓存数据，如果redis中查询不到，再从数据库中查找
 // 事实上，这种设计方式是不安全的，因为一个user包含了所有关于user的信息数据，因此推荐采用加密的方式存储用户信息，
-// @todo 将 model.User 数据加密之后存储到redis缓存库当中
-func (d *userDao) GetUserBuUID(uid int64) (model.User, error) {
+func (d *userDao) GetUserByUid(uid int64) (model.User, error) {
 	if len(gconv.String(uid)) == 0 {
-		return emptyUser(), gerror.New("Query field [uid] must have a positive length.")
+		return emptyUser(), gerror.Newf("Cannot find [model.User] with uid:[%d].", uid)
 	}
 
 	user := emptyUser()
@@ -75,15 +76,15 @@ func (d *userDao) GetUserBuUID(uid int64) (model.User, error) {
 	return user, nil
 }
 
-// GetUserByUIDs 批量获取 model.User
-func (d *userDao) GetUserByUIDs(uids ...int64) ([]model.User, error) {
+// GetUserByUids 批量获取 model.User
+func (d *userDao) GetUserByUids(uids ...int64) ([]model.User, error) {
 	if len(uids) == 0 {
 		return emptyUserSlice(), nil
 	}
 
 	users := emptyUserSlice()
 	if len(uids) == 1 {
-		user, err := d.GetUserBuUID(uids[0])
+		user, err := d.GetUserByUid(uids[0])
 		if err != nil {
 			return users, err
 		}
@@ -195,16 +196,85 @@ func (d *userDao) UpdateUser(user model.User) bool {
 }
 
 // DeleteUserByUID 根据uid删除
+// 由于 user表中的uid和user_role_mapping 表，comment表，user_profile表，user_relation表，article表中的uid字段均有关系
+// 因此删除一个user，就要删除该user在数据库中的所有记录，包括redis中的缓存
+// 多级删除，要么全部成功，要么全部失败，因此需要防止在一个事务当中
 func (d *userDao) DeleteUserByUID(uid uint64) bool {
 	if uid == 0 {
 		return false
 	}
 
-	_, err := g.Model(User.Table).Where(User.C.Uid, uid).Delete()
+	//_, err := g.Model(User.Table).Where(User.C.Uid, uid).Delete()
+	//if err != nil {
+	//	return false
+	//}
+	err := g.DB().Transaction(context.TODO(), func(ctx context.Context, tx *gdb.TX) error {
+		// <1> 从 user 表中删除
+		_, e := tx.Ctx(ctx).Model(User.Table).Where(User.C.Uid, uid).Delete()
+		if e != nil {
+			return e
+		}
+
+		// <2> 从 user_role_mapping 表中删除
+		_, e = tx.Ctx(ctx).Model(UserRoleMapping.Table).Where(UserRoleMapping.C.UserUid, uid).Delete()
+		if e != nil {
+			return e
+		}
+
+		// <3> 从 user_profile 表中删除
+		_, e = tx.Ctx(ctx).Model(UserProfile.Table).Where(UserProfile.C.Uid, uid).Delete()
+		if e != nil {
+			return e
+		}
+
+		// <4> 从user_relation表中删除
+		// user_relation 包含两个删除操作，一个是被追随着删除，一个是追随者删除
+		_, e = tx.Ctx(ctx).Model(UserRelation.Table).Where(UserRelation.C.UserUid, uid).Delete()
+		if e != nil {
+			return e
+		}
+
+		_, e = tx.Ctx(ctx).Model(UserRelation.Table).Where(UserRelation.C.FollowerUid, uid).Delete()
+		if e != nil {
+			return e
+		}
+
+		// <5> 从article表中删除
+		_, e = tx.Ctx(ctx).Model(Article.Table).Where(Article.C.UserUid, uid).Delete()
+		if e != nil {
+			return e
+		}
+
+		// <6> 从 comment表中删除，删除过程有些复杂，首先根据user_uid获取评论uid,然后根据评论uid关联parent_uid
+		// 获取该 user_uid 对应的 comment 的 uid
+		one, e := tx.Ctx(ctx).Model(Comment.Table).Where(Comment.C.UserUid, uid).One()
+		if e != nil {
+			return e
+		}
+		commentId := one[Comment.C.Uid].Uint64()
+		// 根据该comment uid 删除
+		_, e = tx.Ctx(ctx).Model(Comment.Table).Where(Comment.C.ParentUid, commentId).Delete()
+		if e != nil {
+			return e
+		}
+
+		// 删除该评论的子评论
+		_, e = tx.Ctx(ctx).Model(Comment.Table).Where(Comment.C.UserUid, uid).Delete()
+		if e != nil {
+			// 回滚
+			return e
+		}
+
+		deleteUserFromRedis(uid)
+
+		// 所有操作均成功
+		return nil
+	})
+
 	if err != nil {
 		return false
 	}
-	deleteUserFromRedis(uid)
+
 	return true
 }
 

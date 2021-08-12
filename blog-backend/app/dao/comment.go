@@ -6,6 +6,10 @@ package dao
 
 import (
 	"blog-backend/app/dao/internal"
+	"blog-backend/app/dao/utils"
+	"context"
+	"github.com/gogf/gf/database/gdb"
+	"github.com/gogf/gf/frame/g"
 )
 
 // commentDao is the manager for logic model data accessing and custom defined data operations functions management.
@@ -16,13 +20,50 @@ type commentDao struct {
 
 var (
 	// Comment is globally public accessible object for table comment operations.
-	Comment commentDao
+	Comment       commentDao
+	commentWorker *utils.TableWorker
 )
 
 func init() {
 	Comment = commentDao{
 		internal.NewCommentDao(),
 	}
+	commentWorker = utils.NewTableWorker(Comment.Table)
 }
 
-// Fill with you ideas below.
+// DeleteCommentByUserId 删除给定用户id的所有评论
+// 如果删除了一个评论，也会将该评论的子评论删除
+func (d *commentDao) DeleteCommentByUserId(uid uint64) bool {
+	if uid == 0 {
+		return false
+	}
+
+	err := g.DB().Transaction(context.TODO(), func(ctx context.Context, tx *gdb.TX) error {
+		// 获取该 user_uid 对应的 comment 的 uid
+		one, e := tx.Ctx(ctx).Model(Comment.Table).Where(Comment.C.UserUid, uid).One()
+		if e != nil {
+			return e
+		}
+		commentId := one[Comment.C.Uid].Uint64()
+		// 根据该comment uid 删除
+		_, e = tx.Ctx(ctx).Model(Comment.Table).Where(Comment.C.ParentUid, commentId).Delete()
+		if e != nil {
+			return e
+		}
+
+		// 删除该评论的子评论
+		_, e = tx.Ctx(ctx).Model(Comment.Table).Where(Comment.C.UserUid, uid).Delete()
+		if e != nil {
+			// 回滚
+			return e
+		}
+
+		// 两个全部删除成功
+		return nil
+	})
+
+	if err != nil {
+		return false
+	}
+	return true
+}

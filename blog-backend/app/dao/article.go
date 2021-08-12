@@ -28,3 +28,142 @@ func init() {
 	}
 	ariticleWorker = utils.NewTableWorker(Article.Table)
 }
+
+//func (d *articleDao) CheckIfArticleExist(uid uint64) bool {
+//	if uid == 0 {
+//		return false
+//	}
+//
+//	c, err := g.Model(Article.Table).Where(Article.C.Uid, uid).Count()
+//	if err != nil || c == 0 {
+//		return false
+//	}
+//	return true
+//}
+//
+//func (d *articleDao) GetArticleByUid(uid uint64) (model.Article, bool) {
+//	if uid == 0 {
+//		return emptyArticle(), false
+//	}
+//
+//	article := emptyArticle()
+//	err := g.Model(Article.Table).Where(Article.C.Uid, uid).Scan(&article)
+//	if err != nil {
+//		return emptyArticle(), false
+//	}
+//	return article, true
+//}
+//
+//func (d *articleDao) GetArticleByUserName(name string) ([]model.Article, bool) {
+//	if name == "" {
+//		return emptyArticleSlice(), false
+//	}
+//
+//	record, err := g.Model(User.Table).Where(User.C.UserName, name).One()
+//	if err != nil {
+//		return emptyArticleSlice(), false
+//	}
+//
+//	uid := record[User.C.Uid].Uint64()
+//	articles := emptyArticleSlice()
+//	err = g.Model(Article.Table).Where(Article.C.UserUid, uid).Scan(&articles)
+//	if err != nil {
+//		return emptyArticleSlice(), false
+//	}
+//	return articles, true
+//}
+//
+//func (d *articleDao) GetArticleByUserUid(uid uint64) ([]model.Article, bool) {
+//	if uid == 0 {
+//		return emptyArticleSlice(), false
+//	}
+//
+//	articles := emptyArticleSlice()
+//	err := g.Model(Article.Table).Where(Article.C.UserUid, uid).Scan(&articles)
+//	if err != nil {
+//		return emptyArticleSlice(), false
+//	}
+//	return articles, true
+//}
+//
+//func (d *articleDao) GetArticleByTagName(tagName string) ([]model.Article, bool) {
+//	if tagName == "" {
+//		return emptyArticleSlice(), false
+//	}
+//
+//	tagMap, err := g.Model(Tag.Table).Where(Tag.C.TagName, tagName).One()
+//	if err != nil {
+//		return emptyArticleSlice(), false
+//	}
+//	tagUid := tagMap[Tag.C.Uid].Uint64()
+//	articles := emptyArticleSlice()
+//	err = g.Model(TagArticleMapping.Table).Where(TagArticleMapping.C.TagUid, tagUid).Scan(&articles)
+//	if err != nil {
+//		return emptyArticleSlice(), false
+//	}
+//	return articles, true
+//}
+
+//func (d *articleDao) GetArticleByTagUid(tagUid uint64) ([]model.Article, bool) {
+//
+//}
+//
+//func (d *articleDao) GetArticleByCategoryName(catName string) ([]model.Article, bool) {
+//
+//}
+//
+//func (d *articleDao) GetArticleByCategoryUid(uid uint64) ([]model.Article, bool) {
+//
+//}
+//
+//func (d *articleDao) GetArticleTotalReadByUid(uid uint64) (int64, bool) {
+//
+//}
+//
+//func (d *articleDao) GetArticleTotalStarByUid(uid uint64) (int64, bool) {
+//
+//}
+//
+//func (d *articleDao) GetArticleTotalCommentByUid(uid uint64) (int64, bool) {
+//
+//}
+//
+//func (d *articleDao) GetArticleTotalCollectByUid(uid uint64) (int64, bool) {
+//
+//}
+//
+//func (d *articleDao) GetArticleTotalCharByUid(uid uint64) (int64, bool) {
+//
+//}
+//
+//func (d *articleDao) GetArticleTotalReportByUid(uid uint64) (int64, bool) {
+//
+//}
+//
+//func (d *articleDao) GetArticleTotalReprint(uid uint64) (int64, bool) {
+//
+//}
+//
+//func (d *articleDao) UpdateArticle(article model.Article) bool {
+//
+//}
+//
+//func (d *articleDao) DeleteArticleByUserUid(uid uint64) bool {
+//
+//}
+//
+//func (d *articleDao) DeleteArticleByUserName(uid uint64) bool {
+//
+//}
+//
+//func (d *articleDao) AddArticle(article model.Article) bool {
+//
+//}
+//
+//func emptyArticle() model.Article {
+//	return model.Article{}
+//}
+//
+//func emptyArticleSlice() []model.Article {
+//	return make([]model.Article, 0)
+//}

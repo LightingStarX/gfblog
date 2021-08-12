@@ -15,7 +15,7 @@ import (
 // @Date: 2021/8/11-17:42
 
 func TestGetUserByUID(t *testing.T) {
-	user, err := dao.User.GetUserBuUID(1)
+	user, err := dao.User.GetUserByUid(1)
 	if err == nil {
 		fmt.Println(gconv.Map(user))
 	} else {
@@ -25,7 +25,7 @@ func TestGetUserByUID(t *testing.T) {
 
 func TestGetUserByUIDs(t *testing.T) {
 	uids := []int64{1, 2}
-	ds, err := dao.User.GetUserByUIDs(uids...)
+	ds, err := dao.User.GetUserByUids(uids...)
 	if err != nil {
 		fmt.Println(err.Error())
 	} else {
@@ -74,4 +74,15 @@ func TestEncrypt(t *testing.T) {
 	password := "asdfasfasf"
 	encryptPassword := utils.EncryptPassword(password)
 	fmt.Println(encryptPassword)
+}
+
+func TestUserDeleting(t *testing.T) {
+	uid := uint64(2)
+	e := dao.User.DeleteUserByUID(uid)
+	if e {
+		fmt.Println("删除成功")
+	} else {
+		fmt.Println("删除失败")
+	}
+
 }

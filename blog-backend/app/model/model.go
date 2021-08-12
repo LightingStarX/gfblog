@@ -82,10 +82,27 @@ type Role struct {
 	GmtUpdate *gtime.Time `orm:"gmt_update" json:"gmtUpdate"` //
 }
 
+// Tag is the golang structure for table tag.
+type Tag struct {
+	Uid          uint64      `orm:"uid,primary"   json:"uid"`          //
+	TagName      string      `orm:"tag_name"      json:"tagName"`      // 标签名称
+	TotalArticle int         `orm:"total_article" json:"totalArticle"` // 该标签下的文章总数
+	GmtCreate    *gtime.Time `orm:"gmt_create"    json:"gmtCreate"`    //
+	GmtUpdate    *gtime.Time `orm:"gmt_update"    json:"gmtUpdate"`    //
+}
+
+// TagArticleMapping is the golang structure for table tag_article_mapping.
+type TagArticleMapping struct {
+	Uid        uint64      `orm:"uid,primary" json:"uid"`        //
+	TagUid     uint64      `orm:"tag_uid"     json:"tagUid"`     //
+	ArticleUid uint64      `orm:"article_uid" json:"articleUid"` //
+	GmtCreate  *gtime.Time `orm:"gmt_create"  json:"gmtCreate"`  //
+	GmtDeleted *gtime.Time `orm:"gmt_deleted" json:"gmtDeleted"` //
+}
+
 // User is the golang structure for table user.
 type User struct {
 	Uid           uint64      `orm:"uid,primary"      json:"uid"`           // 主键，分布式环境下不建议设置自增属性，而是在业务层通过分布式id生成算法生成id
-	RoleUid       uint64      `orm:"role_uid"         json:"roleUid"`       // 用户角色的uid
 	UserName      string      `orm:"user_name"        json:"userName"`      // 用户登录账号使用的账号名称
 	Password      string      `orm:"password"         json:"password"`      // 用户登录使用的密码
 	NickName      string      `orm:"nick_name,unique" json:"nickName"`      // 用户账号的账号名称，不允许重复
@@ -104,15 +121,6 @@ type User struct {
 	GmtRegister   *gtime.Time `orm:"gmt_register"     json:"gmtRegister"`   // 注册时间
 	GmtLastLogin  *gtime.Time `orm:"gmt_last_login"   json:"gmtLastLogin"`  // 上次登录时间
 	GmtUpdate     *gtime.Time `orm:"gmt_update"       json:"gmtUpdate"`     // 用户上一次更新时间
-}
-
-// UserArticleMapping is the golang structure for table user_article_mapping.
-type UserArticleMapping struct {
-	Uid        uint64      `orm:"uid,primary" json:"uid"`        //
-	UserUid    uint64      `orm:"user_uid"    json:"userUid"`    //
-	ArticleUid uint64      `orm:"article_uid" json:"articleUid"` //
-	GmtCreate  *gtime.Time `orm:"gmt_create"  json:"gmtCreate"`  //
-	GmtUpdate  *gtime.Time `orm:"gmt_update"  json:"gmtUpdate"`  //
 }
 
 // UserProfile is the golang structure for table user_profile.

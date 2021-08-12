@@ -39,7 +39,7 @@ func (d *userRoleMappingDao) DeleteUserRoleMappingByUser(user model.User) bool {
 		return false
 	}
 
-	_, err := g.Model(Role.Table).Where(Role.C.Uid, user.Uid).Delete()
+	_, err := g.Model(UserRoleMapping.Table).Where(UserRoleMapping.C.Uid, user.Uid).Delete()
 	if err != nil {
 		return false
 	}
@@ -52,7 +52,31 @@ func (d *userRoleMappingDao) DeleteUserRoleMappingByRole(role model.Role) bool {
 		return false
 	}
 
-	_, err := g.Model(Role.Table).Where(Role.C.Uid, role.Uid).Delete()
+	_, err := g.Model(UserRoleMapping.Table).Where(UserRoleMapping.C.Uid, role.Uid).Delete()
+	if err != nil {
+		return false
+	}
+	return true
+}
+
+func (d *userRoleMappingDao) DeleteUserRoleMappingByUserId(uid uint64) bool {
+	if uid == 0 {
+		return false
+	}
+
+	_, err := g.Model(UserRoleMapping.Table).Where(UserRoleMapping.C.UserUid, uid).Delete()
+	if err != nil {
+		return false
+	}
+	return true
+}
+
+func (d *userRoleMappingDao) DeleteUserRoleMappingByRoleId(id uint64) bool {
+	if id == 0 {
+		return false
+	}
+
+	_, err := g.Model(UserRoleMapping.Table).Where(UserRoleMapping.C.RoleUid, id).Delete()
 	if err != nil {
 		return false
 	}
