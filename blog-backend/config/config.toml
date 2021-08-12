@@ -1,0 +1,42 @@
+# HTTP Server
+[server]
+	Address     = ":8199"
+	ServerRoot  = "public"
+	ServerAgent = "gf-app"
+	LogPath     = "D:/log/server"
+
+# Logger.
+[logger]
+    Path        = "D:/log"
+    Level       = "all"
+    Stdout      = true
+
+# Template.
+# [viewer]
+#     Path        = "template"
+#     DefaultFile = "index.html"
+#     Delimiters  =  ["{{", "}}"]
+
+# Database.
+[database]
+    # 这里的Link最好在你的host文件中设置，最好使用switchHost来管理，防止ip地址泄露遭到攻击
+    link  = "mysql:root:CHINA19980223`@tcp(database:23156)/gfblog"
+    debug = true
+    # Database logger.
+    [database.logger]
+        Path   = "D:/log/database"
+        Level  = "all"
+        Stdout = true
+
+[redis]
+    default = "49.234.43.37:6379,3,123456"
+    # user相关操作的redis缓存
+    user_cache = "49.234.43.37:6379,0,123456"
+    # article相关操作的redis缓存
+    article_cache = "49.234.43.37:6379,1,123456"
+    # system相关的缓存
+    system_cache = "49.234.43.37:6379,2,123456"
+
+[[gfcli]]
+    [[gfcli.gen.dao]]
+        link = "mysql:root:CHINA19980223`@tcp(database.com:3306)/gfblog"
